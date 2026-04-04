@@ -1,16 +1,30 @@
 package main
 
 import (
-	"os"
-
+	gormAdapter "github.com/Nishishei01/Go_Hexagonal/internal/adapters/gorm"
+	httpAdapter "github.com/Nishishei01/Go_Hexagonal/internal/adapters/http"
 	"github.com/Nishishei01/Go_Hexagonal/internal/config"
+	"github.com/Nishishei01/Go_Hexagonal/internal/domains"
+	"github.com/Nishishei01/Go_Hexagonal/internal/services"
+
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+type structValidator struct {
+	validate *validator.Validate
+}
+
+func (v *structValidator) Validate(out any) error {
+	return v.validate.Struct(out)
+}
+
 func main() {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		StructValidator: &structValidator{validate: validator.New()},
+	})
 
 	config.LoadEnv()
 
@@ -20,11 +34,16 @@ func main() {
 		panic("Failed to connect to database: " + err.Error())
 	}
 
-	db.AutoMigrate()
+	db.AutoMigrate(
+		&domains.User{},
+	)
 
-	app.Get("/test", func(c fiber.Ctx) error {
-		return c.SendString(os.Getenv("DB_USER"))
-	})
+	userRepo := gormAdapter.NewAuthGormRepository(db)
+	userService := services.NewAuthService(userRepo)
+	userHandler := httpAdapter.NewAuthHandler(userService)
+
+	app.Post("/register", userHandler.Register)
+	app.Post("/login", userHandler.Login)
 
 	app.Listen(":8080")
 }
