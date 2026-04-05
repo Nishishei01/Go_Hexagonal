@@ -42,8 +42,7 @@ func main() {
 	userService := services.NewAuthService(userRepo)
 	userHandler := httpAdapter.NewAuthHandler(userService)
 
-	app.Post("/register", userHandler.Register)
-	app.Post("/login", userHandler.Login)
+	httpAdapter.Routes(app, userHandler, userService)
 
 	app.Listen(":8080")
 }

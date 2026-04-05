@@ -1,5 +1,7 @@
 package domains
 
+import "github.com/golang-jwt/jwt/v5"
+
 type RegisterRequest struct {
 	Username  string `json:"username" validate:"required,min=3,max=25"`
 	Password  string `json:"password" validate:"required,min=3"`
@@ -11,4 +13,10 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Username string `json:"username" validate:"required,min=3,max=25"`
 	Password string `json:"password" validate:"required,min=3"`
+}
+
+type JWTClaims struct {
+	UserID   uint   `json:"user_id"`
+	Username string `json:"username"`
+	jwt.RegisteredClaims
 }

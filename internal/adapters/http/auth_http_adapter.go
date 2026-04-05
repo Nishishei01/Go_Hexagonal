@@ -45,6 +45,34 @@ func (a *AuthHandler) Login(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	a.setRefreshTokenCookie(c, refreshToken)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"access_token": accessToken,
+		"message":      "User successfully logged in!",
+	})
+}
+
+func (a *AuthHandler) RefreshToken(c fiber.Ctx) error {
+	refreshToken := c.Cookies("refresh_token")
+	if refreshToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing refresh token!"})
+	}
+
+	accessToken, newRefreshToken, err := a.authService.RefreshToken(refreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired refresh token!"})
+	}
+
+	a.setRefreshTokenCookie(c, newRefreshToken)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"access_token": accessToken,
+		"message":      "Token refreshed successfully!",
+	})
+}
+
+func (a *AuthHandler) setRefreshTokenCookie(c fiber.Ctx, refreshToken string) {
 	c.Cookie(&fiber.Cookie{
 		Name:     "refresh_token",
 		Value:    refreshToken,
@@ -52,10 +80,5 @@ func (a *AuthHandler) Login(c fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   true,
 		SameSite: "Lax",
-	})
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"access_token": accessToken,
-		"message":      "User successfully logged in!",
 	})
 }

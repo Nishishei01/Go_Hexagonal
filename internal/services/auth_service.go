@@ -14,6 +14,8 @@ import (
 type AuthService interface {
 	Register(user *domains.RegisterRequest) error
 	Login(loginUser *domains.LoginRequest) (string, string, error)
+	ValidateToken(tokenString string) (*domains.JWTClaims, error)
+	RefreshToken(refreshTokenString string) (string, string, error)
 }
 
 type AuthServiceImpl struct {
@@ -60,17 +62,70 @@ func (a *AuthServiceImpl) Login(authUser *domains.LoginRequest) (string, string,
 		return "", "", errors.New("Password invalid!")
 	}
 
+	return a.generateTokens(user.ID, user.Username)
+}
+
+func (a *AuthServiceImpl) ValidateToken(tokenString string) (*domains.JWTClaims, error) {
+
+	accessSecret := os.Getenv("JWT_ACCESS_SECRET")
+
+	token, err := jwt.ParseWithClaims(tokenString, &domains.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("Invalid signing method")
+		}
+		return []byte(accessSecret), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*domains.JWTClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, errors.New("Invalid Token!")
+}
+
+func (a *AuthServiceImpl) RefreshToken(refreshTokenString string) (string, string, error) {
+	refreshSecret := os.Getenv("JWT_REFRESH_SECRET")
+
+	token, err := jwt.ParseWithClaims(refreshTokenString, &domains.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("Invalid signing method")
+		}
+		return []byte(refreshSecret), nil
+	})
+
+	if err != nil {
+		return "", "", err
+	}
+
+	if claims, ok := token.Claims.(*domains.JWTClaims); ok && token.Valid {
+		return a.generateTokens(claims.UserID, claims.Username)
+	}
+
+	return "", "", errors.New("Invalid Refresh Token!")
+}
+
+func (a *AuthServiceImpl) generateTokens(userID uint, username string) (string, string, error) {
 	accessSecret := os.Getenv("JWT_ACCESS_SECRET")
 	refreshSecret := os.Getenv("JWT_REFRESH_SECRET")
 
-	accessClaims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(time.Minute * 5).Unix(),
+	accessClaims := domains.JWTClaims{
+		UserID:   userID,
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 10)),
+		},
 	}
 
-	refreshClaims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 1).Unix(),
+	refreshClaims := domains.JWTClaims{
+		UserID:   userID,
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
+		},
 	}
 
 	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims).SignedString([]byte(accessSecret))
