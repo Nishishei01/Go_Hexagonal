@@ -69,7 +69,7 @@ func (a *AuthServiceImpl) ValidateToken(tokenString string) (*domains.JWTClaims,
 
 	accessSecret := os.Getenv("JWT_ACCESS_SECRET")
 
-	token, err := jwt.ParseWithClaims(tokenString, &domains.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &domains.JWTClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("Invalid signing method")
 		}
@@ -90,7 +90,7 @@ func (a *AuthServiceImpl) ValidateToken(tokenString string) (*domains.JWTClaims,
 func (a *AuthServiceImpl) RefreshToken(refreshTokenString string) (string, string, error) {
 	refreshSecret := os.Getenv("JWT_REFRESH_SECRET")
 
-	token, err := jwt.ParseWithClaims(refreshTokenString, &domains.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshTokenString, &domains.JWTClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("Invalid signing method")
 		}

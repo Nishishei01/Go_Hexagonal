@@ -21,3 +21,11 @@ func DbUrl() string {
 	}
 	return u
 }
+
+func RedisUrl() string {
+	u := os.Getenv("REDIS_URL")
+	if u == "" {
+		return "redis://localhost:6379"
+	}
+	return u
+}
