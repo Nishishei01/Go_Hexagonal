@@ -24,6 +24,11 @@ func (h *RoleHandler) Create(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request!"})
 	}
 
+	if err := validate.Struct(&roleRequest); err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Validation failed!"})
+	}
+
 	if err := h.roleService.Create(&roleRequest); err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error!"})
@@ -70,6 +75,11 @@ func (h *RoleHandler) Update(c fiber.Ctx) error {
 	if err := c.Bind().Body(&roleRequest); err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request!"})
+	}
+
+	if err := validate.Struct(&roleRequest); err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Validation failed!"})
 	}
 
 	if err := h.roleService.Update(uint(id), &roleRequest); err != nil {

@@ -6,8 +6,11 @@ import (
 
 	"github.com/Nishishei01/Go_Hexagonal/internal/domains"
 	"github.com/Nishishei01/Go_Hexagonal/internal/services"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 )
+
+var validate = validator.New()
 
 type PostHandler struct {
 	postService services.PostService
@@ -21,7 +24,12 @@ func (h *PostHandler) Create(c fiber.Ctx) error {
 	var postRequest domains.PostRequest
 	if err := c.Bind().Body(&postRequest); err != nil {
 		fmt.Println(err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request!"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format!"})
+	}
+
+	if err := validate.Struct(&postRequest); err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Validation failed!"})
 	}
 
 	if err := h.postService.Create(&postRequest); err != nil {
@@ -69,7 +77,12 @@ func (h *PostHandler) Update(c fiber.Ctx) error {
 	var postRequest domains.PostRequest
 	if err := c.Bind().Body(&postRequest); err != nil {
 		fmt.Println(err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request!"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format!"})
+	}
+
+	if err := validate.Struct(&postRequest); err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Validation failed!"})
 	}
 
 	if err := h.postService.Update(uint(id), &postRequest); err != nil {
