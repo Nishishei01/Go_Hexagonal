@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package post;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./proto/post";
+
+service PostService {
+    rpc CreatePost(PostRequest) returns (PostResponse);
+    rpc GetAllPost(GetAllPostRequest) returns (GetAllPostResponse);
+    rpc GetPostByID(GetPostRequest) returns (GetPostResponse);
+    rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse);
+    rpc DeletePost(DeletePostRequest) returns (DeletePostResponse);
+}
+
+message Post {
+    uint32 id = 1;
+    string title = 2;
+    string content = 3;
+    uint32 user_id = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+message PostRequest {
+    string title = 1;
+    string content = 2;
+    uint32 user_id = 3;
+}
+
+message PostResponse {
+    string message = 1;
+}
+
+message GetAllPostRequest {}
+
+message GetAllPostResponse {
+    repeated Post posts = 1;
+}
+
+message GetPostRequest {
+    uint32 id = 1;
+}
+
+message GetPostResponse {
+    Post post = 1;
+}
+
+message UpdatePostRequest {
+    uint32 id = 1;
+    string title = 2;
+    string content = 3;
+}
+
+message UpdatePostResponse {
+    Post post = 1;
+    string message = 2;
+}
+
+message DeletePostRequest {
+    uint32 id = 1;
+}
+
+message DeletePostResponse {
+    string message = 1;
+}

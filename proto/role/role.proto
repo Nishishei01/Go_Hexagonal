@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package role;
+
+option go_package = './role.proto';
+
+import "google/protobuf/timestamp.proto";
+
+service RoleService {
+    rpc CreateRole (RoleRequest) returns (RoleResponse);
+    rpc GetAllRole (GetAllRoleRequest) returns (GetAllRoleResponse);
+    rpc GetRoleByID (GetRoleByIDRequest) returns (GetRoleByIDResponse);
+    rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleResponse);
+    rpc DeleteRole (DeleteRequest) returns (DeleteResponse);
+}
+
+message RoleRequest {
+    string role = 1;
+}
+
+message RoleResponse {
+    string message = 1;
+}
+
+message User {
+    uint32 id = 1;
+    string username = 2;
+    string password = 3;
+    string email = 4;
+    string first_name = 5;
+    string last_name = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+}
+
+message GetAllRoleRequest {}
+
+message GetAllRoleResponse {
+    repeated GetRoleByIDResponse roles = 1;
+}
+
+message GetRoleByIDRequest {
+    uint32 id = 1;
+}
+
+message GetRoleByIDResponse {
+    uint32 id = 1;
+    string role = 2;
+    google.protobuf.Timestamp create_at = 3;
+    google.protobuf.Timestamp update_at = 4;
+
+    repeated User users = 5;
+}
+
+message UpdateRoleRequest {
+    uint32 id = 1;
+    string role = 2;
+}
+
+message UpdateRoleResponse {
+    RoleResponse role = 1;
+    string message = 2;
+}
+
+message DeleteRequest {
+    uint32 id = 1;
+}
+
+message DeleteResponse {
+    string message = 1;
+}

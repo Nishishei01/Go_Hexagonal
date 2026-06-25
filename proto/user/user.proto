@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package user;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = './proto/user';
+
+service PostService {
+    rpc  GetAllUser(GetAllUserRequest) returns (GetAllUserResponse);
+    rpc  GetUserByID(GetUserRequest) returns (GetUserResponse);
+    rpc  UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+    rpc  DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message GetAllUserRequest {}
+
+message GetAllUserResponse {
+    repeated GetUserResponse users = 1;
+}
+
+message GetUserRequest {
+    uint32 id = 1;
+}
+
+message GetUserResponse {
+    uint32 id = 1;
+    string username = 2;
+    string password = 3;
+    string email = 4;
+    string first_name = 5;
+    string last_name = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+}
+
+message UpdateUserRequest {
+    uint32 id = 1;
+    string username = 2;
+    string password = 3;
+    string email = 4;
+    string first_name = 5;
+    string last_name = 6;
+}
+
+message UpdateUserResponse {
+    GetUserResponse user= 1;
+    string message = 2;
+}
+
+message DeleteUserRequest {
+    uint32 id = 1;
+}
+
+message DeleteUserResponse {
+    string message = 1;
+}
+
